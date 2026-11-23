@@ -4,32 +4,18 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
-  Cpu,
   ExternalLink,
-  Loader2,
   RefreshCw,
   Ruler,
   ShieldAlert,
-  ShieldCheck,
   Sparkles,
   Store,
   X,
 } from "lucide-react";
-import type {
-  AlternativeSKUCard,
-  CartReadyEvent,
-  CatalogReadyEvent,
-  HookEvent,
-  ScaleReadyEvent,
-  VerifiedCartItem,
-} from "@/types/clearbuy";
+import type { CartReadyEvent, VerifiedCartItem } from "@/types/clearbuy";
 
 interface ShopifyCommerceRailProps {
   cartData: CartReadyEvent | null;
-  scaleData?: ScaleReadyEvent | null;
-  catalogData?: CatalogReadyEvent | null;
-  hookData?: HookEvent | null;
-  elapsedSec?: number;
   budgetUsd: number;
   isLoading: boolean;
   isSwapping: boolean;
@@ -38,16 +24,11 @@ interface ShopifyCommerceRailProps {
   onHoverItem: (itemId: string | null) => void;
   onSelectVariant: (itemId: string, variantId: string) => void;
   onRerenderVariant: (item: VerifiedCartItem) => void;
-  onSelectAlternative: (alt: AlternativeSKUCard) => void;
   onRequestSwapForItem: (item: VerifiedCartItem, promptOverride?: string) => void;
 }
 
 export function ShopifyCommerceRail({
   cartData,
-  scaleData,
-  catalogData,
-  hookData,
-  elapsedSec = 0,
   budgetUsd,
   isLoading,
   isSwapping,
@@ -56,20 +37,15 @@ export function ShopifyCommerceRail({
   onHoverItem,
   onSelectVariant,
   onRerenderVariant,
-  onSelectAlternative,
   onRequestSwapForItem,
 }: ShopifyCommerceRailProps) {
+  const [showUcpModal, setShowUcpModal] = useState(false);
   const [previewItem, setPreviewItem] = useState<VerifiedCartItem | null>(null);
-  const [previewPhotoIdx, setPreviewPhotoIdx] = useState<number>(0);
-  const [activeSkuTab, setActiveSkuTab] = useState<string>("all");
-  const [expandedAltIds, setExpandedAltIds] = useState<Record<string, boolean>>({});
-  const [activePhotoByItem, setActivePhotoByItem] = useState<Record<string, number>>({});
   const [dirtyVariantItems, setDirtyVariantItems] = useState<Record<string, boolean>>({});
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (!pinnedItemId) return;
-    setActiveSkuTab("all");
     cardRefs.current[pinnedItemId]?.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
@@ -77,648 +53,311 @@ export function ShopifyCommerceRail({
   }, [pinnedItemId]);
 
   useEffect(() => {
-    if (!previewItem) return;
+    if (!previewItem && !showUcpModal) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPreviewItem(null);
+      if (e.key === "Escape") {
+        setPreviewItem(null);
+        setShowUcpModal(false);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [previewItem]);
+  }, [previewItem, showUcpModal]);
 
   const totalUsd = cartData?.total_usd ?? 0;
   const budgetPct = Math.min(100, budgetUsd > 0 ? (totalUsd / budgetUsd) * 100 : 0);
   const isOverBudget = totalUsd > budgetUsd;
 
-  const previewGallery =
-    previewItem?.images && previewItem.images.length > 0
-      ? previewItem.images
-      : previewItem?.image_url
-      ? [previewItem.image_url]
-      : [];
-
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-at-card">
-      {/* Dynamic Multi-SKU Tabs Bar (scales to ANY number of SKUs requested by user) */}
-      {cartData && cartData.items.length > 1 && (
-        <div className="px-4 py-2 border-b border-at-border flex items-center gap-1.5 overflow-x-auto bg-at-bg/40 shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveSkuTab("all")}
-            className={`px-2.5 py-1 rounded-md text-xs font-medium border shrink-0 cursor-pointer transition-colors ${
-              activeSkuTab === "all"
-                ? "bg-at-cyan/15 border-at-cyan text-at-cyan font-semibold"
-                : "bg-at-card border-at-border text-at-muted hover:text-at-ink"
-            }`}
-          >
-            All ({cartData.items.length})
-          </button>
-          {cartData.items.map((it) => {
-            const isTabAct = activeSkuTab === it.item_id;
-            const imgCount = it.images?.length || (it.image_url ? 1 : 0);
-            return (
-              <button
-                key={`tab-${it.item_id}`}
-                type="button"
-                onClick={() => setActiveSkuTab(it.item_id)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium border shrink-0 cursor-pointer transition-colors ${
-                  isTabAct
-                    ? "bg-at-cyan/15 border-at-cyan text-at-cyan font-semibold"
-                    : "bg-at-card border-at-border text-at-muted hover:text-at-ink"
-                }`}
-              >
-                #{it.pin_number} {it.category}
-                {imgCount > 1 ? ` · ${imgCount}` : ""}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Spacious Scrollable Product Cards */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
         {isLoading && !cartData && (
-          <div className="space-y-3">
-            <div className="rounded-xl border border-at-border bg-at-bg p-4 space-y-3.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="inline-flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-at-cyan" />
-                  <span className="text-xs font-semibold tracking-tight text-at-ink">
-                    Live Spatial Compiler Pipeline
-                  </span>
-                </div>
-                <span className="text-[11px] font-mono tabular-nums-strict text-at-cyan">
-                  {elapsedSec.toFixed(1)}s
-                </span>
-              </div>
-
-              {/* Stage 1: Optical Scale Calibration */}
+          <>
+            {[1, 2, 3].map((n) => (
               <div
-                className={`rounded-lg border p-3 transition-all ${
-                  scaleData
-                    ? "border-at-emerald/35 bg-at-emerald/5"
-                    : "border-at-cyan/50 bg-at-cyan/5"
-                }`}
+                key={n}
+                className="h-32 rounded-xl bg-at-bg border border-at-border p-3 animate-pulse flex gap-3"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-2 text-xs font-semibold text-at-ink">
-                    {scaleData ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-at-emerald shrink-0" />
-                    ) : (
-                      <Loader2 className="h-3.5 w-3.5 text-at-cyan animate-spin shrink-0" />
-                    )}
-                    1. Optical Scale Calibration
-                  </span>
-                  <span className="text-[10px] font-mono text-at-muted">
-                    Gemini 4 Neon · xhigh
-                  </span>
+                <div className="h-18 w-18 rounded-lg bg-at-border shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 w-3/4 rounded bg-at-border" />
+                  <div className="h-3 w-1/2 rounded bg-at-border" />
+                  <div className="h-5 w-2/3 rounded bg-at-border" />
                 </div>
-                {scaleData ? (
-                  <div className="mt-2 space-y-1 text-[11px] font-mono text-at-muted pl-5.5">
-                    {scaleData.anchors.slice(0, 2).map((a) => (
-                      <div key={a.id} className="flex items-center justify-between gap-2">
-                        <span className="truncate">{a.label}</span>
-                        <span className="text-at-emerald shrink-0">
-                          {a.px_per_in.toFixed(1)} px/in
-                        </span>
-                      </div>
-                    ))}
-                    {scaleData.zones[0] && (
-                      <div className="flex items-center justify-between gap-2 text-at-ink font-medium pt-0.5">
-                        <span className="truncate">{scaleData.zones[0].label}</span>
-                        <span className="text-at-cyan shrink-0">
-                          {scaleData.zones[0].width_in.toFixed(1)}&quot; W ×{" "}
-                          {scaleData.zones[0].depth_in.toFixed(1)}&quot; D
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="mt-1.5 text-[11px] text-at-muted leading-relaxed pl-5.5">
-                    Detecting real-world scale anchors (US outlets 4.5&quot; H, baseboards 4.0&quot; H, doors 80&quot; H) and computing usable wall span with zero tape measure…
-                  </p>
-                )}
               </div>
-
-              {/* Stage 2: Live Shopify Inventory Search */}
-              <div
-                className={`rounded-lg border p-3 transition-all ${
-                  catalogData
-                    ? "border-at-emerald/35 bg-at-emerald/5"
-                    : scaleData
-                    ? "border-at-cyan/50 bg-at-cyan/5"
-                    : "border-at-border bg-at-card/50 opacity-65"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-2 text-xs font-semibold text-at-ink">
-                    {catalogData ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-at-emerald shrink-0" />
-                    ) : scaleData ? (
-                      <Loader2 className="h-3.5 w-3.5 text-at-cyan animate-spin shrink-0" />
-                    ) : (
-                      <Store className="h-3.5 w-3.5 text-at-muted shrink-0" />
-                    )}
-                    2. Live Shopify Inventory Search
-                  </span>
-                  <span className="text-[10px] font-mono text-at-muted">
-                    Shop MCP · Hydrogen
-                  </span>
-                </div>
-                {catalogData ? (
-                  <p className="mt-1.5 text-[11px] font-mono text-at-emerald pl-5.5">
-                    Screened {catalogData.skus_screened} live Shopify SKUs across{" "}
-                    {catalogData.stores_scanned} merchants ({catalogData.candidates.length} verified candidates)
-                  </p>
-                ) : (
-                  <p className="mt-1.5 text-[11px] text-at-muted leading-relaxed pl-5.5">
-                    {scaleData
-                      ? "Querying live Shopify merchants, normalizing minor-unit cent prices & parsing exact W×D×H dimensions…"
-                      : "Waiting for calibrated room width to query live Shopify merchants…"}
-                  </p>
-                )}
-              </div>
-
-              {/* Stage 3: Deterministic Fit & Budget Guardrail */}
-              <div
-                className={`rounded-lg border p-3 transition-all ${
-                  hookData
-                    ? "border-at-emerald/35 bg-at-emerald/5"
-                    : catalogData
-                    ? "border-at-cyan/50 bg-at-cyan/5"
-                    : "border-at-border bg-at-card/50 opacity-65"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-2 text-xs font-semibold text-at-ink">
-                    {hookData ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-at-emerald shrink-0" />
-                    ) : catalogData ? (
-                      <Loader2 className="h-3.5 w-3.5 text-at-cyan animate-spin shrink-0" />
-                    ) : (
-                      <ShieldCheck className="h-3.5 w-3.5 text-at-muted shrink-0" />
-                    )}
-                    3. Fit & Budget Verification
-                  </span>
-                  <span className="text-[10px] font-mono text-at-muted">
-                    hooks.json · &lt;15 ms
-                  </span>
-                </div>
-                {hookData ? (
-                  <p className="mt-1.5 text-[11px] font-mono text-at-emerald pl-5.5">
-                    Verified bundle under ${budgetUsd.toFixed(0)} · {hookData.status.replace("_", " ")} (
-                    {hookData.blocked_count} blocked · {hookData.elapsed_ms} ms)
-                  </p>
-                ) : (
-                  <p className="mt-1.5 text-[11px] text-at-muted leading-relaxed pl-5.5">
-                    Enforcing hard wall-width fit, 24&quot; chair clearance & strict ${budgetUsd.toFixed(0)} budget cap…
-                  </p>
-                )}
-              </div>
-
-              {/* Stage 4: Photorealistic Render + Visual QA */}
-              <div
-                className={`rounded-lg border p-3 transition-all ${
-                  hookData
-                    ? "border-at-cyan/50 bg-at-cyan/5"
-                    : "border-at-border bg-at-card/50 opacity-65"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-2 text-xs font-semibold text-at-ink">
-                    {hookData ? (
-                      <Loader2 className="h-3.5 w-3.5 text-at-cyan animate-spin shrink-0" />
-                    ) : (
-                      <Ruler className="h-3.5 w-3.5 text-at-muted shrink-0" />
-                    )}
-                    4. Exact-SKU Render + Visual QA
-                  </span>
-                  <span className="text-[10px] font-mono text-at-muted">
-                    Nano Banana 2.1 + Decisions
-                  </span>
-                </div>
-                <p className="mt-1.5 text-[11px] text-at-muted leading-relaxed pl-5.5">
-                  Compositing exact verified Shopify product photos into your room at honest physical scale & auditing for wall clipping…
-                </p>
-              </div>
-            </div>
-          </div>
+            ))}
+          </>
         )}
 
-        {(cartData?.items ?? [])
-          .filter((item) => activeSkuTab === "all" || item.item_id === activeSkuTab)
-          .map((item) => {
-            const isHovered = hoveredItemId === item.item_id;
-            const needsRerender = Boolean(dirtyVariantItems[item.item_id]);
-            const gallery =
-              item.images && item.images.length > 0
-                ? item.images
-                : item.image_url
-                ? [item.image_url]
-                : [];
-            const activeImgIdx = Math.min(
-              activePhotoByItem[item.item_id] ?? 0,
-              Math.max(0, gallery.length - 1)
-            );
-            const displayImg = gallery[activeImgIdx] || item.image_url;
+        {cartData?.items.map((item) => {
+          const isHovered = hoveredItemId === item.item_id;
+          const needsRerender = Boolean(dirtyVariantItems[item.item_id]);
+          return (
+            <div
+              key={item.item_id}
+              ref={(el) => {
+                cardRefs.current[item.item_id] = el;
+              }}
+              onMouseEnter={() => onHoverItem(item.item_id)}
+              onMouseLeave={() => onHoverItem(null)}
+              className={`rounded-xl p-3 bg-at-bg border transition-all space-y-2.5 ${
+                isHovered || pinnedItemId === item.item_id
+                  ? "border-at-cyan ring-1 ring-at-cyan/30"
+                  : item.fit_state === "blocked"
+                  ? "border-at-coral/70"
+                  : "border-at-border hover:border-at-cyan/50"
+              }`}
+            >
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPreviewItem(item)}
+                  title="Click to view full product photo"
+                  className="relative h-20 w-20 rounded-xl overflow-hidden border border-at-border hover:border-at-cyan bg-at-card shrink-0 cursor-zoom-in group transition-colors"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image_url}
+                    alt={item.title}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  />
+                  <span className="absolute top-1 left-1 h-5 w-5 rounded-full bg-[#0C0D10]/90 border border-at-cyan text-[10px] font-mono font-bold text-white flex items-center justify-center">
+                    {item.pin_number}
+                  </span>
+                </button>
 
-            return (
-              <div
-                key={item.item_id}
-                ref={(el) => {
-                  cardRefs.current[item.item_id] = el;
-                }}
-                onMouseEnter={() => onHoverItem(item.item_id)}
-                onMouseLeave={() => onHoverItem(null)}
-                className={`rounded-xl p-3 bg-at-bg border transition-all space-y-2.5 ${
-                  isHovered || pinnedItemId === item.item_id
-                    ? "border-at-cyan ring-1 ring-at-cyan/30"
-                    : item.fit_state === "blocked"
-                    ? "border-at-coral/70"
-                    : "border-at-border hover:border-at-cyan/50"
-                }`}
-              >
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreviewItem(item);
-                      setPreviewPhotoIdx(activeImgIdx);
-                    }}
-                    title="Click to inspect all product photos"
-                    className="relative h-20 w-20 rounded-xl overflow-hidden border border-at-border hover:border-at-cyan bg-at-card shrink-0 cursor-zoom-in group transition-colors"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={displayImg}
-                      alt={item.title}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
-                    />
-                    <span className="absolute top-1 left-1 h-5 w-5 rounded-full bg-[#0C0D10]/90 border border-at-cyan text-[10px] font-mono font-bold text-white flex items-center justify-center">
-                      {item.pin_number}
+                <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
+                  {/* Top: Title + Price */}
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-at-ink leading-snug line-clamp-2">
+                      {item.title}
+                    </h3>
+                    <span className="text-sm font-mono font-semibold tabular-nums-strict text-at-ink shrink-0">
+                      ${item.price_usd.toFixed(2)}
                     </span>
-                  </button>
+                  </div>
 
-                  <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-at-ink leading-snug line-clamp-2">
-                        {item.product_url ? (
-                          <a
-                            href={item.product_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline inline-flex items-center gap-1"
-                          >
-                            <span>{item.title}</span>
-                            <ExternalLink className="h-3 w-3 shrink-0 text-at-cyan" />
-                          </a>
-                        ) : (
-                          item.title
-                        )}
-                      </h3>
-                      <span className="text-sm font-mono font-semibold tabular-nums-strict text-at-ink shrink-0">
-                        ${item.price_usd.toFixed(2)}
+                  {/* Middle: Segregated Store + Fit Badge */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs text-at-muted">
+                      <Store className="h-3 w-3 shrink-0" />
+                      <span>{item.merchant}</span>
+                      <span className="text-at-emerald font-medium">· In Stock</span>
+                      {item.product_url && (
+                        <a
+                          href={item.product_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-at-muted hover:text-at-cyan transition-colors ml-0.5"
+                          title="Open live Shopify merchant page"
+                        >
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
+                      )}
+                    </span>
+
+                    {item.fit_state === "verified" && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-at-emerald/10 border border-at-emerald/30 text-[11px] font-mono tabular-nums-strict text-at-emerald">
+                        <CheckCircle2 className="h-3 w-3" />
+                        {item.fit_label}
                       </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1 text-xs text-at-muted">
-                        <Store className="h-3 w-3 shrink-0" />
-                        <span>{item.merchant}</span>
-                        <span className="text-at-emerald font-medium">· In Stock</span>
-                      </span>
-
-                      {item.fit_state === "verified" && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-at-emerald/10 border border-at-emerald/30 text-[11px] font-mono tabular-nums-strict text-at-emerald">
-                          <CheckCircle2 className="h-3 w-3" />
-                          {item.fit_label}
+                    )}
+                    {item.fit_state === "unverified" && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-at-notice/10 border border-at-notice/40 text-[11px] text-at-notice">
+                          <AlertTriangle className="h-3 w-3" />
+                          Check size
                         </span>
-                      )}
-                      {item.fit_state === "unverified" && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-at-notice/10 border border-at-notice/40 text-[11px] text-at-notice">
-                            <AlertTriangle className="h-3 w-3" />
-                            Check size
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onRequestSwapForItem(
-                                item,
-                                `Find a verified-size ${item.category.toLowerCase()} alternative`
-                              )
-                            }
-                            className="px-2 py-0.5 rounded-full bg-at-card border border-at-border hover:border-at-cyan text-[11px] text-at-ink cursor-pointer"
-                          >
-                            Find fit
-                          </button>
-                        </div>
-                      )}
-                      {item.fit_state === "blocked" && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-at-coral/10 border border-at-coral/40 text-[11px] text-at-coral">
-                          <ShieldAlert className="h-3 w-3" />
-                          {item.fit_label}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Multi-Photo Gallery Strip */}
-                    {gallery.length > 1 && (
-                      <div className="flex items-center gap-1 pt-0.5 overflow-x-auto">
-                        {gallery.map((gUrl, gIdx) => (
-                          <button
-                            key={`${item.item_id}-img-${gIdx}`}
-                            type="button"
-                            onClick={() =>
-                              setActivePhotoByItem((prev) => ({
-                                ...prev,
-                                [item.item_id]: gIdx,
-                              }))
-                            }
-                            className={`h-7 w-7 rounded overflow-hidden border shrink-0 cursor-pointer transition-all ${
-                              gIdx === activeImgIdx
-                                ? "border-at-cyan ring-1 ring-at-cyan/40"
-                                : "border-at-border opacity-70 hover:opacity-100"
-                            }`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={gUrl}
-                              alt={`${item.title} #${gIdx + 1}`}
-                              className="h-full w-full object-cover"
-                            />
-                          </button>
-                        ))}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onRequestSwapForItem(
+                              item,
+                              `Find a verified-size ${item.category.toLowerCase()} alternative`
+                            )
+                          }
+                          className="px-2 py-0.5 rounded-full bg-at-card border border-at-border hover:border-at-cyan text-[11px] text-at-ink cursor-pointer"
+                        >
+                          Find fit
+                        </button>
                       </div>
+                    )}
+                    {item.fit_state === "blocked" && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-at-coral/10 border border-at-coral/40 text-[11px] text-at-coral">
+                        <ShieldAlert className="h-3 w-3" />
+                        {item.fit_label}
+                      </span>
                     )}
                   </div>
                 </div>
+              </div>
 
-                {/* Actual Size vs. Measured Room Gap Comparison Bar */}
-                {(() => {
-                  const matchedZone =
-                    scaleData?.zones.find((z) => z.zone_id === item.zone_id) ??
-                    scaleData?.zones[0];
-                  const gapW = matchedZone?.width_in ?? item.zone_width_in;
-                  const marginIn = 2.0;
-                  const usableW = Math.max(1, Number((gapW - marginIn).toFixed(1)));
-                  const gapD = matchedZone?.depth_in ?? null;
-                  const itemW = item.width_in ?? null;
-                  const itemD = item.depth_in ?? null;
-                  const itemH = item.height_in ?? null;
+              {/* Actual Size vs. Measured Room Gap Comparison Bar */}
+              {(() => {
+                const gapW = item.zone_width_in;
+                const marginIn = 2.0;
+                const usableW = Math.max(1, Number((gapW - marginIn).toFixed(1)));
+                const itemW = item.width_in ?? null;
+                const itemD = item.depth_in ?? null;
+                const itemH = item.height_in ?? null;
 
-                  if (!gapW || gapW <= 0) return null;
+                if (!gapW || gapW <= 0) return null;
 
-                  if (itemW !== null && itemW > 0) {
-                    const spareIn = Number((usableW - itemW).toFixed(1));
-                    const fits = spareIn >= 0;
-                    const itemPct = Math.min(100, Math.round((itemW / gapW) * 100));
-                    const marginPct = Math.min(12, Math.max(3, Math.round((marginIn / gapW) * 100)));
-                    const sparePct = Math.max(0, 100 - itemPct - marginPct);
-                    return (
-                      <div className="rounded-lg bg-at-card border border-at-border/90 px-2.5 py-2 space-y-1.5">
-                        <div className="flex items-center justify-between gap-2 text-[10px] font-mono tabular-nums-strict">
-                          <span className="inline-flex items-center gap-1 font-sans font-medium text-at-muted">
-                            <Ruler className="h-3 w-3 text-at-cyan" />
-                            Size vs. Measured Gap
-                          </span>
-                          <span className={fits ? "text-at-emerald font-semibold" : "text-at-coral font-semibold"}>
-                            {itemW.toFixed(1)}&quot; / {usableW.toFixed(1)}&quot; usable (
-                            {fits ? `+${spareIn.toFixed(1)}" spare` : `${spareIn.toFixed(1)}" overflow`})
-                          </span>
-                        </div>
-
-                        {/* Proportional Width Scale Bar */}
-                        <div
-                          className="h-2.5 w-full rounded-full bg-at-surface border border-at-border/70 overflow-hidden flex"
-                          title={`Item ${itemW.toFixed(1)}" W inside ${gapW.toFixed(1)}" measured gap (${usableW.toFixed(1)}" usable + ${marginIn}" wall margin)`}
-                        >
-                          <div
-                            className={`h-full transition-all duration-300 ${
-                              fits ? "bg-at-emerald" : "bg-at-coral"
-                            }`}
-                            style={{ width: `${itemPct}%` }}
-                          />
-                          {sparePct > 0 && (
-                            <div
-                              className="h-full bg-at-cyan/15 border-l border-dashed border-at-cyan/50"
-                              style={{ width: `${sparePct}%` }}
-                            />
-                          )}
-                          <div
-                            className="h-full bg-at-muted/25 border-l border-at-border"
-                            style={{ width: `${marginPct}%` }}
-                          />
-                        </div>
-
-                        {/* Exact Numeric Breakdown */}
-                        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-[10px] font-mono tabular-nums-strict text-at-muted">
-                          <span>
-                            Item:{" "}
-                            <strong className="text-at-ink">
-                              {itemW.toFixed(1)}&quot;W
-                              {itemD ? ` × ${itemD.toFixed(1)}"D` : ""}
-                              {itemH ? ` × ${itemH.toFixed(1)}"H` : ""}
-                            </strong>
-                          </span>
-                          <span>
-                            Gap:{" "}
-                            <strong className="text-at-ink">
-                              {gapW.toFixed(1)}&quot;W
-                              {gapD ? ` × ${gapD.toFixed(1)}"D` : ""}
-                            </strong>
-                            {" "}({marginIn.toFixed(0)}&quot; margin)
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  }
+                if (itemW !== null && itemW > 0) {
+                  const spareIn = Number((usableW - itemW).toFixed(1));
+                  const fits = spareIn >= 0;
+                  const itemPct = Math.min(100, Math.round((itemW / gapW) * 100));
+                  const marginPct = Math.min(12, Math.max(3, Math.round((marginIn / gapW) * 100)));
+                  const sparePct = Math.max(0, 100 - itemPct - marginPct);
 
                   return (
-                    <div className="rounded-lg bg-at-notice/5 border border-at-notice/30 px-2.5 py-2 space-y-1">
+                    <div className="rounded-lg bg-at-surface/60 border border-at-border/80 px-2.5 py-1.5 space-y-1">
                       <div className="flex items-center justify-between gap-2 text-[10px] font-mono tabular-nums-strict">
-                        <span className="inline-flex items-center gap-1 font-sans font-medium text-at-notice">
-                          <Ruler className="h-3 w-3" />
-                          Measured Gap: {gapW.toFixed(1)}&quot; W ({usableW.toFixed(1)}&quot; usable)
+                        <span className="inline-flex items-center gap-1 font-sans font-medium text-at-muted">
+                          <Ruler className="h-3 w-3 text-at-cyan" />
+                          Size vs. Measured Gap
                         </span>
-                        <span className="text-at-notice font-semibold">Merchant width unlisted</span>
+                        <span className={fits ? "text-at-emerald font-semibold" : "text-at-coral font-semibold"}>
+                          {itemW.toFixed(1)}&quot; / {usableW.toFixed(1)}&quot; usable (
+                          {fits ? `+${spareIn.toFixed(1)}" spare` : `${spareIn.toFixed(1)}" overflow`})
+                        </span>
                       </div>
-                      <p className="text-[10px] text-at-muted leading-snug">
-                        Shopify merchant did not publish exact width in text. Confirm width ≤{" "}
-                        <span className="font-mono font-semibold text-at-ink">{usableW.toFixed(1)}&quot;</span>{" "}
-                        or click <strong className="text-at-ink">Find fit</strong> for a verified-width SKU.
-                      </p>
+
+                      {/* Proportional Width Scale Bar */}
+                      <div
+                        className="h-2 w-full rounded-full bg-at-bg border border-at-border/70 overflow-hidden flex"
+                        title={`Item ${itemW.toFixed(1)}" W inside ${gapW.toFixed(1)}" measured gap (${usableW.toFixed(1)}" usable + ${marginIn}" wall margin)`}
+                      >
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            fits ? "bg-at-emerald" : "bg-at-coral"
+                          }`}
+                          style={{ width: `${itemPct}%` }}
+                        />
+                        {sparePct > 0 && (
+                          <div
+                            className="h-full bg-at-cyan/20 border-l border-dashed border-at-cyan/50"
+                            style={{ width: `${sparePct}%` }}
+                          />
+                        )}
+                        <div
+                          className="h-full bg-at-muted/20 border-l border-at-border"
+                          style={{ width: `${marginPct}%` }}
+                        />
+                      </div>
+
+                      {/* Exact Numeric Breakdown */}
+                      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-[10px] font-mono tabular-nums-strict text-at-muted">
+                        <span>
+                          Item:{" "}
+                          <strong className="text-at-ink">
+                            {itemW.toFixed(1)}&quot;W
+                            {itemD ? ` × ${itemD.toFixed(1)}"D` : ""}
+                            {itemH ? ` × ${itemH.toFixed(1)}"H` : ""}
+                          </strong>
+                        </span>
+                        <span>
+                          Gap:{" "}
+                          <strong className="text-at-ink">
+                            {gapW.toFixed(1)}&quot;W
+                          </strong>
+                          {" "}({marginIn.toFixed(0)}&quot; margin)
+                        </span>
+                      </div>
                     </div>
                   );
-                })()}
+                }
 
-                {/* Finish Swatches + 1-Click Re-Render Finish + See Alternatives */}
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-at-border flex-wrap">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {item.variants.map((variant) => {
-                      const active = variant.variant_id === item.selected_variant_id;
-                      return (
-                        <button
-                          key={variant.variant_id}
-                          type="button"
-                          onClick={() => {
-                            onSelectVariant(item.item_id, variant.variant_id);
-                            setDirtyVariantItems((prev) => ({
-                              ...prev,
-                              [item.item_id]: true,
-                            }));
-                          }}
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] border transition-colors cursor-pointer ${
-                            active
-                              ? "bg-at-card border-at-cyan text-at-ink font-medium"
-                              : "bg-transparent border-at-border text-at-muted hover:text-at-ink"
-                          }`}
-                        >
-                          <span
-                            className="h-2.5 w-2.5 rounded-full border border-white/25"
-                            style={{ backgroundColor: variant.color_hex }}
-                          />
-                          {variant.label}
-                        </button>
-                      );
-                    })}
+                return (
+                  <div className="rounded-lg bg-at-notice/5 border border-at-notice/30 px-2.5 py-1.5 flex items-center justify-between gap-2 text-[10px]">
+                    <span className="inline-flex items-center gap-1 font-sans text-at-notice">
+                      <Ruler className="h-3 w-3" />
+                      Measured Gap: {gapW.toFixed(1)}&quot; W ({usableW.toFixed(1)}&quot; usable)
+                    </span>
+                    <span className="text-at-muted font-mono">Merchant width unlisted</span>
                   </div>
+                );
+              })()}
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {needsRerender && (
+              {/* Finish Swatches + 1-Click Re-Render Finish + Swap */}
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-at-border flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {item.variants.map((variant) => {
+                    const active = variant.variant_id === item.selected_variant_id;
+                    return (
                       <button
+                        key={variant.variant_id}
                         type="button"
-                        disabled={isSwapping}
                         onClick={() => {
+                          onSelectVariant(item.item_id, variant.variant_id);
                           setDirtyVariantItems((prev) => ({
                             ...prev,
-                            [item.item_id]: false,
+                            [item.item_id]: true,
                           }));
-                          onRerenderVariant(item);
                         }}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-at-cyan text-[#0C0D10] text-[10px] font-semibold disabled:opacity-50 cursor-pointer"
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] border transition-colors cursor-pointer ${
+                          active
+                            ? "bg-at-card border-at-cyan text-at-ink font-medium"
+                            : "bg-transparent border-at-border text-at-muted hover:text-at-ink"
+                        }`}
                       >
-                        <Sparkles className="h-3 w-3" />
-                        Re-render finish
+                        <span
+                          className="h-2.5 w-2.5 rounded-full border border-white/25"
+                          style={{ backgroundColor: variant.color_hex }}
+                        />
+                        {variant.label}
                       </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const preAlts =
-                          cartData?.alternatives_by_sku?.[item.sku_id] ||
-                          cartData?.alternatives_by_sku?.[item.item_id] ||
-                          [];
-                        if (preAlts.length > 0) {
-                          setExpandedAltIds((prev) => ({
-                            ...prev,
-                            [item.item_id]: !prev[item.item_id],
-                          }));
-                        } else {
-                          onRequestSwapForItem(item);
-                        }
-                      }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-at-card border border-at-border hover:border-at-cyan text-xs font-medium text-at-ink cursor-pointer"
-                    >
-                      <RefreshCw className="h-3 w-3 text-at-cyan" />
-                      {(() => {
-                        const cnt = (
-                          cartData?.alternatives_by_sku?.[item.sku_id] ||
-                          cartData?.alternatives_by_sku?.[item.item_id] ||
-                          []
-                        ).length;
-                        return cnt > 0 ? `Alternatives (${cnt})` : "Find Alternatives";
-                      })()}
-                    </button>
-                  </div>
+                    );
+                  })}
                 </div>
 
-                {/* Inline Pre-Vetted Alternatives Visual Strip (auto-open on individual SKU tab or toggle) */}
-                {(() => {
-                  const preAlts =
-                    cartData?.alternatives_by_sku?.[item.sku_id] ||
-                    cartData?.alternatives_by_sku?.[item.item_id] ||
-                    [];
-                  const showAlts =
-                    preAlts.length > 0 &&
-                    (activeSkuTab === item.item_id || Boolean(expandedAltIds[item.item_id]));
-                  if (!showAlts) return null;
-                  return (
-                    <div className="pt-2 border-t border-at-border space-y-2">
-                      <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-at-muted">
-                        <span>Pre-Vetted Alternatives ({preAlts.length})</span>
-                        <span>1-Click Surgical Swap</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {preAlts.map((alt) => (
-                          <div
-                            key={alt.sku_id}
-                            className={`rounded-lg p-2 bg-at-card border flex flex-col justify-between gap-2 ${
-                              alt.hook_blocked ? "border-at-coral/60 opacity-85" : "border-at-border"
-                            }`}
-                          >
-                            <div className="flex gap-2">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={alt.image_url}
-                                alt={alt.title}
-                                className="h-12 w-12 rounded-md object-cover border border-at-border shrink-0 bg-at-bg"
-                              />
-                              <div className="min-w-0 flex-1">
-                                <p className="text-[11px] font-medium text-at-ink line-clamp-2 leading-snug">
-                                  {alt.title}
-                                </p>
-                                <p className="text-[10px] font-mono text-at-muted mt-0.5">
-                                  ${alt.price_usd.toFixed(2)} · {alt.merchant}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between gap-1.5">
-                              <span
-                                className={`text-[10px] font-mono truncate ${
-                                  alt.hook_blocked ? "text-at-coral" : "text-at-emerald"
-                                }`}
-                              >
-                                {alt.fit_delta_label}
-                              </span>
-                              {alt.hook_blocked ? (
-                                <span className="px-2 py-0.5 rounded bg-at-coral/15 text-at-coral text-[10px] font-mono shrink-0">
-                                  Blocked
-                                </span>
-                              ) : (
-                                <button
-                                  type="button"
-                                  disabled={isSwapping}
-                                  onClick={() => onSelectAlternative(alt)}
-                                  className="px-2 py-0.5 rounded bg-at-cyan text-[#0C0D10] text-[10px] font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer shrink-0"
-                                >
-                                  {isSwapping ? "Swapping…" : "Swap into Room"}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {needsRerender && (
+                    <button
+                      type="button"
+                      disabled={isSwapping}
+                      onClick={() => {
+                        setDirtyVariantItems((prev) => ({
+                          ...prev,
+                          [item.item_id]: false,
+                        }));
+                        onRerenderVariant(item);
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-at-cyan text-[#0C0D10] text-[10px] font-semibold disabled:opacity-50 cursor-pointer"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      Re-render finish
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => onRequestSwapForItem(item)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-at-card border border-at-border hover:border-at-cyan text-[10px] font-mono text-at-muted hover:text-at-ink cursor-pointer"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Swap
+                  </button>
+                </div>
               </div>
-            );
-          })}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Sticky Combined Budget Bar + Per-Merchant Shop Pay Checkouts */}
+      {/* Sticky Combined Budget Bar + Checkout All + Per-Merchant UCP + Shop Pay Banner */}
       <div className="border-t border-at-border bg-at-card p-3 space-y-2.5 shrink-0">
         <div className="space-y-1">
           <div className="flex items-center justify-between text-xs font-mono tabular-nums-strict">
-            <span className="text-at-muted">Bundle Total</span>
+            <span className="text-at-muted">Verified Bundle Total</span>
             <span className={isOverBudget ? "text-at-coral" : "text-at-emerald"}>
               ${totalUsd.toFixed(2)} / ${budgetUsd.toFixed(2)}
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-at-bg overflow-hidden border border-at-border">
+          <div className="h-1.5 w-full rounded-full bg-at-bg overflow-hidden">
             <div
-              className={`h-full transition-all duration-300 ${
+              className={`h-full rounded-full transition-all duration-300 ${
                 isOverBudget ? "bg-at-coral" : "bg-at-emerald"
               }`}
               style={{ width: `${budgetPct}%` }}
@@ -727,19 +366,41 @@ export function ShopifyCommerceRail({
         </div>
 
         {cartData && cartData.checkouts.length > 0 ? (
-          <div className="space-y-1.5">
-            <div className="grid grid-cols-1 gap-1.5">
+          <div className="space-y-2">
+            {cartData.checkouts.length > 1 && (
+              <button
+                type="button"
+                onClick={() => {
+                  cartData.checkouts.forEach((chk) => {
+                    window.open(chk.continue_url, "_blank", "noopener,noreferrer");
+                  });
+                }}
+                className="w-full h-10 px-3.5 rounded-xl bg-at-shop hover:opacity-95 text-white text-xs font-semibold flex items-center justify-between transition-opacity shadow-sm cursor-pointer"
+              >
+                <span>
+                  Checkout All ({cartData.checkouts.length} Stores) via Shop Pay
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-mono tabular-nums-strict shrink-0">
+                  ${totalUsd.toFixed(2)}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </span>
+              </button>
+            )}
+
+            <div className="flex flex-wrap gap-1.5">
               {cartData.checkouts.map((chk) => (
                 <a
-                  key={chk.checkout_id || chk.merchant}
+                  key={chk.checkout_id}
                   href={chk.continue_url}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2 px-3 rounded-xl bg-[#5A31F4] hover:opacity-95 text-white text-xs font-medium flex items-center justify-between transition-opacity"
+                  rel="noreferrer"
+                  className={`flex-1 min-w-[110px] h-8 px-2.5 rounded-lg border text-[11px] font-medium flex items-center justify-between gap-1.5 transition-colors ${
+                    cartData.checkouts.length === 1
+                      ? "bg-at-shop border-at-shop text-white hover:opacity-95"
+                      : "bg-at-bg border-at-border text-at-ink hover:border-at-shop hover:text-at-shop"
+                  }`}
                 >
-                  <span className="truncate">
-                    Checkout at {chk.merchant} ({chk.item_count})
-                  </span>
+                  <span className="truncate">Checkout at {chk.merchant}</span>
                   <span className="inline-flex items-center gap-1 font-mono tabular-nums-strict shrink-0">
                     ${chk.subtotal_usd.toFixed(2)}
                     <ExternalLink className="h-3 w-3 opacity-75" />
@@ -747,21 +408,63 @@ export function ShopifyCommerceRail({
                 </a>
               ))}
             </div>
-            <div className="flex items-center justify-center gap-2 pt-0.5 text-[10px] text-at-muted">
-              <span className="px-1.5 py-0.5 rounded bg-[#5A31F4]/15 text-[#5A31F4] font-semibold">
+
+            {/* Authentic Shop Pay Handoff Banner (Section 03.B Component D) */}
+            <div className="flex items-center justify-center gap-2 pt-0.5 text-[10px] font-mono text-at-muted">
+              <span className="px-1.5 py-0.5 rounded bg-at-shop/15 text-at-shop font-semibold">
                 Shop Pay
               </span>
-              <span>Live merchant checkout handoff</span>
+              <span>Native per-merchant Universal Commerce Protocol (UCP) handoff</span>
             </div>
           </div>
         ) : (
-          <div className="h-9 rounded-xl bg-at-bg border border-at-border flex items-center justify-center text-xs text-at-muted">
-            Finding verified in-stock items…
+          <div className="h-9 rounded-xl bg-at-bg border border-at-border flex items-center justify-center text-[11px] font-mono text-at-muted">
+            Awaiting hooks.json ALLOW before UCP checkout creation…
           </div>
         )}
       </div>
 
-      {/* Full Multi-Image Product Lightbox Modal */}
+      {/* Inspect UCP Payload & GIDs Modal */}
+      {showUcpModal && cartData && (
+        <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-at-card border border-at-border shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div className="px-4 py-3 border-b border-at-border flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-at-ink">
+                  Live Shop MCP GIDs &amp; Per-Merchant UCP Payloads
+                </h3>
+                <p className="text-[11px] font-mono text-at-muted">
+                  Direct HTTP JSON-RPC → https://mcp.shop.com/
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUcpModal(false)}
+                className="p-1.5 rounded-lg hover:bg-at-bg text-at-muted cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto space-y-3 font-mono text-[11px]">
+              {cartData.items.map((item) => (
+                <div
+                  key={item.item_id}
+                  className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-at-bg border border-at-border"
+                >
+                  <span className="text-at-ink truncate">{item.title}</span>
+                  <span className="text-at-emerald shrink-0 ml-2">
+                    {item.shopify_gid}
+                  </span>
+                </div>
+              ))}
+              <pre className="p-3 rounded-xl bg-at-bg border border-at-border text-at-muted overflow-x-auto">
+                {JSON.stringify(cartData.checkouts, null, 2)}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Product Image Lightbox Modal */}
       {previewItem && (
         <div
           className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
@@ -789,50 +492,21 @@ export function ShopifyCommerceRail({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="bg-at-bg p-6 flex flex-col items-center justify-center gap-3 max-h-[68vh]">
+            <div className="bg-at-bg p-6 flex items-center justify-center max-h-[65vh]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={previewGallery[previewPhotoIdx] || previewItem.image_url}
+                src={previewItem.image_url}
                 alt={previewItem.title}
-                className="max-h-[50vh] w-auto max-w-full rounded-xl object-contain shadow-lg"
+                className="max-h-[55vh] w-auto max-w-full rounded-xl object-contain shadow-lg"
               />
-              {previewGallery.length > 1 && (
-                <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pt-1">
-                  {previewGallery.map((gUrl, idx) => (
-                    <button
-                      key={`modal-img-${idx}`}
-                      type="button"
-                      onClick={() => setPreviewPhotoIdx(idx)}
-                      className={`h-11 w-11 rounded-lg overflow-hidden border-2 shrink-0 cursor-pointer ${
-                        idx === previewPhotoIdx
-                          ? "border-at-cyan"
-                          : "border-at-border opacity-70 hover:opacity-100"
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={gUrl} alt="" className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
             <div className="px-4 py-3 border-t border-at-border flex items-center justify-between gap-2 text-xs">
               <span className="font-mono text-at-emerald">
                 {previewItem.fit_label}
               </span>
-              {previewItem.product_url ? (
-                <a
-                  href={previewItem.product_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-at-cyan hover:underline font-medium"
-                >
-                  View on {previewItem.merchant}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : (
-                <span className="text-at-muted">Pin #{previewItem.pin_number}</span>
-              )}
+              <span className="text-at-muted">
+                Pin #{previewItem.pin_number} in room
+              </span>
             </div>
           </div>
         </div>

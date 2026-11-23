@@ -42,6 +42,7 @@ eval/tmp/
 *.log
 
 # Node / Next.js
+frontend_backup_head/
 node_modules/
 frontend/node_modules/
 .next/

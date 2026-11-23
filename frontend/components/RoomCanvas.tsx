@@ -36,7 +36,6 @@ interface RoomCanvasProps {
   onSelectZone: (zone: DetectedZone) => void;
   onOverrideZoneWidth: (zone: DetectedZone, newWidthIn: number) => void;
   isRendering: boolean;
-  isSwapping?: boolean;
   isRepairing: boolean;
   angleTabs?: { id: string; label: string; imageUrl: string }[];
   activeAngleId?: string;
@@ -64,7 +63,6 @@ export function RoomCanvas({
   onSelectZone,
   onOverrideZoneWidth,
   isRendering,
-  isSwapping = false,
   isRepairing,
   angleTabs,
   activeAngleId,
@@ -314,61 +312,12 @@ export function RoomCanvas({
             />
           )}
 
-          {/* Initial Calibrating OR Live Surgical Swap / Finish Re-Render HUD */}
-          {(!scaleData || isSwapping) && (
-            <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/20 overflow-hidden">
-              {/* Sweeping Architectural Laser Scan-Line */}
-              <div className="absolute inset-0 pointer-events-none">
-                <div className="w-full h-20 bg-gradient-to-b from-transparent via-[#38BDF8]/25 to-transparent border-b-2 border-[#38BDF8]/80 animate-datum-scanline" />
-              </div>
-
-              {/* Subtle CAD Corner Viewfinder Brackets */}
-              <div className="absolute inset-5 pointer-events-none">
-                <div className="absolute top-0 left-0 h-6 w-6 border-t-2 border-l-2 border-[#38BDF8]/80 rounded-tl-sm" />
-                <div className="absolute top-0 right-0 h-6 w-6 border-t-2 border-r-2 border-[#38BDF8]/80 rounded-tr-sm" />
-                <div className="absolute bottom-0 left-0 h-6 w-6 border-b-2 border-l-2 border-[#38BDF8]/80 rounded-bl-sm" />
-                <div className="absolute bottom-0 right-0 h-6 w-6 border-b-2 border-r-2 border-[#38BDF8]/80 rounded-br-sm" />
-              </div>
-
-              {/* Live Optical Calibration / Render Telemetry Card */}
-              <div className="relative max-w-sm w-[90%] rounded-2xl bg-at-card/95 backdrop-blur-md border border-at-cyan/50 px-4 py-3.5 shadow-2xl space-y-2">
-                <div className="flex items-center gap-2.5 text-xs font-semibold text-at-ink">
-                  <Sparkles className="h-4 w-4 text-at-cyan animate-spin shrink-0" />
-                  <span>
-                    {isSwapping
-                      ? "Surgical Swap · Nano Banana 2.1 + Decisions QA"
-                      : "Optical Scale Calibration · Gemini 4 Neon"}
-                  </span>
-                </div>
-                <p className="text-[11px] text-at-muted leading-relaxed">
-                  {isSwapping
-                    ? "Replacing only the selected SKU at honest physical inch scale while keeping your room walls, lighting & untouched items identical…"
-                    : "Scanning photo for known physical anchors (US outlets 4.5\" H, baseboards 4.0\" H, doors 80\" H) to lock px/in scale and usable wall span…"}
-                </p>
-                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-[10px] font-mono text-at-cyan">
-                  {isSwapping ? (
-                    <>
-                      <span className="px-2 py-0.5 rounded-full bg-at-cyan/10 border border-at-cyan/30">
-                        Exact-SKU Conditioning
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-at-cyan/10 border border-at-cyan/30">
-                        Clip & Scale Audit
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="px-2 py-0.5 rounded-full bg-at-cyan/10 border border-at-cyan/30">
-                        Anchor Detection
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-at-cyan/10 border border-at-cyan/30">
-                        px/in Metric Solve
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-at-cyan/10 border border-at-cyan/30">
-                        Zone Footprint
-                      </span>
-                    </>
-                  )}
-                </div>
+          {/* Initial Calibrating Status Pill */}
+          {!scaleData && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-at-card/95 border border-at-cyan/50 text-xs font-mono text-at-cyan shadow-xl">
+                <Sparkles className="h-4 w-4 animate-spin" />
+                Calibrating room space…
               </div>
             </div>
           )}

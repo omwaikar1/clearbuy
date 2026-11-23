@@ -34,19 +34,9 @@ export function BlueprintOverlay({
     side: "left" | "right";
   } | null>(null);
 
+  const primaryAnchor = scaleData.anchors[0];
   const primaryZone = scaleData.zones[0];
   const isLayer2 = scaleData.calibration_layer === "layer2_depth_exif";
-
-  const formatAnchorText = (anchor: ScaleReadyEvent["anchors"][number], isPrimary: boolean) => {
-    const cleanLabel = anchor.label.trim();
-    const sizeLabel = anchor.known_size_label?.trim() ?? "";
-    const labelWithSize =
-      sizeLabel && !cleanLabel.toLowerCase().includes(sizeLabel.toLowerCase())
-        ? `${cleanLabel} · ${sizeLabel}`
-        : cleanLabel;
-    const tol = isPrimary ? ` (±${scaleData.tolerance_in}")` : "";
-    return `${labelWithSize} → ${anchor.px_per_in.toFixed(1)} px/in${tol}`;
-  };
 
   const handlePointerDown = (
     e: React.PointerEvent,
@@ -170,14 +160,11 @@ export function BlueprintOverlay({
           );
         })}
 
-        {/* Reference Anchor Callout Boxes (Layer 1 — Amber/Emerald dashed so clearly distinct from Cyan Zone) */}
+        {/* Reference Anchor Callout Boxes (Layer 1) */}
         {scaleData.anchors.map((anchor, idx) => {
           const [y1, x1, y2, x2] = anchor.bbox;
           const w = x2 - x1;
           const h = y2 - y1;
-          const strokeColor = idx === 0 ? "#10B981" : "#F59E0B";
-          const fillColor =
-            idx === 0 ? "rgba(16, 185, 129, 0.16)" : "rgba(245, 158, 11, 0.12)";
           return (
             <g key={anchor.id}>
               <rect
@@ -185,24 +172,22 @@ export function BlueprintOverlay({
                 y={y1}
                 width={w}
                 height={h}
-                fill={fillColor}
-                stroke={strokeColor}
+                fill="rgba(56, 189, 248, 0.14)"
+                stroke="#38BDF8"
                 strokeWidth="2.5"
                 strokeDasharray="6 4"
                 rx="3"
-              >
-                <title>Scale Anchor: {formatAnchorText(anchor, idx === 0)}</title>
-              </rect>
+              />
               {idx === 0 && primaryZone && (
                 <line
                   x1={x2}
                   y1={(y1 + y2) / 2}
                   x2={primaryZone.bbox[1]}
                   y2={(primaryZone.bbox[0] + primaryZone.bbox[2]) / 2}
-                  stroke="#10B981"
+                  stroke="#38BDF8"
                   strokeWidth="1.5"
                   strokeDasharray="4 4"
-                  opacity="0.7"
+                  opacity="0.75"
                 />
               )}
             </g>
@@ -245,7 +230,7 @@ export function BlueprintOverlay({
                 className="pointer-events-auto cursor-pointer"
                 onClick={() => onSelectZone?.(zone)}
               >
-                <title>Click to target {zone.label}</title>
+                <title>Click to target {zone.label} in Voice Swap Thread</title>
               </rect>
 
               {/* Corner CAD brackets */}
@@ -360,71 +345,47 @@ export function BlueprintOverlay({
                 <title>Drag to override {zone.zone_id} width</title>
               </circle>
 
+              {/* Inline SVG width pill */}
+              <rect
+                x={midX - 68}
+                y={caliperY - 16}
+                width="136"
+                height="28"
+                rx="6"
+                fill="#0C0D10"
+                fillOpacity="0.92"
+                stroke="#38BDF8"
+                strokeWidth="1.5"
+              />
+              <text
+                x={midX}
+                y={caliperY + 3}
+                textAnchor="middle"
+                fill="#F4F5F7"
+                fontSize="16"
+                fontFamily="monospace"
+                fontWeight="600"
+              >
+                {zone.zone_id} · {displayWidth.toFixed(1)}&quot; W
+              </text>
             </g>
           );
         })}
       </svg>
 
-      {/* Crisp, Unclipped HTML Zone Width Caliper Pills */}
-      {scaleData.zones.map((zone) => {
-        const [y1, x1, , x2] = zone.bbox;
-        const midX = (x1 + x2) / 2;
-        const caliperY = Math.max(40, y1 - 22);
-        const displayWidth =
-          draggingZoneId === zone.zone_id && dragPreviewWidth !== null
-            ? dragPreviewWidth
-            : zone.width_in;
-        const zoneTitle = zone.label
-          ? zone.label.split("·")[0].trim()
-          : zone.zone_id;
-
-        return (
-          <div
-            key={`pill-${zone.zone_id}`}
-            className="absolute -translate-x-1/2 -translate-y-1/2 px-2.5 py-0.5 rounded-md bg-[#0C0D10]/95 border border-[#38BDF8] text-[11px] font-mono font-semibold tabular-nums-strict text-[#F4F5F7] shadow-lg whitespace-nowrap"
-            style={{
-              left: `${midX / 10}%`,
-              top: `${caliperY / 10}%`,
-            }}
-          >
-            <span className="text-[#38BDF8]">{zoneTitle}</span> · {displayWidth.toFixed(1)}&quot; W
-          </div>
-        );
-      })}
-
-      {/* Crisp HTML Callout Pill for EVERY Reference Anchor (Outlet/Switch, Baseboard, Door, etc.) */}
-      {scaleData.calibration_layer === "layer1_anchor" &&
-        scaleData.anchors.map((anchor, idx) => {
-          const [y1, x1, y2, x2] = anchor.bbox;
-          const isPrimary = idx === 0;
-          const midX = (x1 + x2) / 2;
-          // Primary anchor label sits cleanly above its box; secondary anchor (e.g. baseboard near bottom)
-          // sits just below its top edge or below the box so it never collides with primary anchor
-          const topPct = isPrimary
-            ? Math.max(6, y1 / 10 - 6.5)
-            : Math.min(91, y2 / 10 + 1.5);
-          const leftPct = Math.min(72, Math.max(4, midX / 10 - 12));
-
-          return (
-            <div
-              key={`anchor-pill-${anchor.id}`}
-              className={`absolute px-2 py-0.5 rounded-md bg-[#0C0D10]/92 text-[10px] font-mono tabular-nums-strict shadow-lg whitespace-nowrap border ${
-                isPrimary
-                  ? "border-[#10B981]/80 text-[#34D399]"
-                  : "border-[#F59E0B]/80 text-[#FBBF24]"
-              }`}
-              style={{
-                left: `${leftPct}%`,
-                top: `${topPct}%`,
-              }}
-            >
-              <span className="opacity-75 uppercase tracking-wider mr-1">
-                {isPrimary ? "Anchor 1:" : `Anchor ${idx + 1}:`}
-              </span>
-              {formatAnchorText(anchor, isPrimary)}
-            </div>
-          );
-        })}
+      {/* Crisp HTML Anchor Callout Pill */}
+      {primaryAnchor && scaleData.calibration_layer === "layer1_anchor" && (
+        <div
+          className="absolute px-2.5 py-1 rounded-md bg-[#0C0D10]/92 border border-[#38BDF8]/70 text-[11px] font-mono tabular-nums-strict text-[#38BDF8] shadow-lg"
+          style={{
+            left: `${Math.min(70, Math.max(2, primaryAnchor.bbox[1] / 10 - 2))}%`,
+            top: `${Math.max(8, primaryAnchor.bbox[0] / 10 - 9)}%`,
+          }}
+        >
+          {primaryAnchor.label} · {primaryAnchor.known_size_label} →{" "}
+          {primaryAnchor.px_per_in.toFixed(1)} px/in (±{scaleData.tolerance_in}&quot;)
+        </div>
+      )}
 
       {/* Dragging feedback toast */}
       {draggingZoneId && dragPreviewWidth !== null && (
