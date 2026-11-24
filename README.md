@@ -2,6 +2,8 @@
 
 **A verified spatial commerce compiler.** Upload a photo of your room, and ClearBuy measures it, picks real products that actually fit, renders them into the scene, and hands you a checkout, with every step checked by a deterministic guardrail instead of trusting the model.
 
+**Live demo:** [clearbuy-frontend.onrender.com](https://clearbuy-frontend.onrender.com)
+
 **Stack:** Next.js 15 · FastAPI (SSE) · Google GenAI SDK · Managed Agents (`hooks.json`) · Shopify Shop MCP / UCP
 
 ---
