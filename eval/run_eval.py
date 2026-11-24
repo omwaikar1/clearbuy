@@ -3,7 +3,7 @@
 Evaluates across 14 unseen indoor rooms:
 1. Baseline A: 1-Shot Multimodal LLM (no Shop MCP, no scale math, no `hooks.json`)
 2. Baseline B: Ungated Shopify `mcp.shop.com` Search (naive regex dimension parsing, no `hooks.json`)
-3. ClearBuy (Datum): Two-layer scale calibration + `gemini-4-hydrogen` WxDxH + `hooks.json` + `gemini-decision-1` QA
+3. ClearBuy: Two-layer scale calibration + `gemini-4-hydrogen` WxDxH + `hooks.json` + `gemini-decision-1` QA
 4. Gemini 4 Thinking-Level Ablation: `gemini-4-neon (low)` vs `gemini-4-neon (xhigh)`
 5. `gemini-decision-1` Adversarial Visual QA Catch Rate (clean vs synthetically clipped/shrunk renders)
 """
@@ -389,7 +389,7 @@ async def run_full_benchmark() -> dict[str, Any]:
                 "notes": f"Real SKUs, but overflows walls/budgets and hits {b_b_regex_traps} height-vs-width regex traps.",
             },
             {
-                "system": "ClearBuy (Datum) · Verified Spatial Compiler",
+                "system": "ClearBuy · Verified Spatial Compiler",
                 "real_buyable_skus_pct": 100.0,
                 "kinect_fit_pass_pct": round((cb_fit_pass / n_rooms) * 100.0, 1),
                 "strict_budget_pass_pct": round((cb_budget_pass / n_rooms) * 100.0, 1),
@@ -431,7 +431,7 @@ async def run_full_benchmark() -> dict[str, Any]:
                 "failure_mode": "Extreme Wide-Angle Foreshortening (>15% Multi-Anchor Skew)",
                 "caught_on": "0.5x ultrawide smartphone corner shots",
                 "status": "Mitigated Honestly",
-                "mitigation": "Neon xhigh cross-checks all visible anchors, widens tolerance to ±2.4\", and unlocks draggable CAD caliper override.",
+                "mitigation": "Neon xhigh cross-checks all visible anchors, widens tolerance to ±2.4\", and unlocks draggable CAD measure override.",
             },
         ],
         "rooms": per_room_results,

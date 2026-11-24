@@ -12,14 +12,14 @@ _MOD = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MOD)
 
 verify_bundle_dict = _MOD.verify_bundle_dict
-verify_engineer_b_payload = _MOD.verify_engineer_b_payload
+verify_api_payload = _MOD.verify_api_payload
 compute_constraints_hash = _MOD.compute_constraints_hash
 infer_placement_mode = _MOD.infer_placement_mode
 handle_hook_stdin = _MOD.handle_hook_stdin
 
 __all__ = [
     "verify_bundle_dict",
-    "verify_engineer_b_payload",
+    "verify_api_payload",
     "compute_constraints_hash",
     "infer_placement_mode",
     "handle_hook_stdin",

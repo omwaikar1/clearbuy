@@ -2,18 +2,18 @@
 
 import React from "react";
 
-export function DatumLogo({ className = "h-7 w-7" }: { className?: string }) {
+export function ClearBuyLogo({ className = "h-7 w-7" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`${className} shrink-0 text-at-ink`}
-      aria-label="Datum"
+      aria-label="ClearBuy"
     >
       <defs>
         <linearGradient
-          id="datumCaliperCyan"
+          id="clearbuyMeasureCyan"
           x1="4"
           y1="16"
           x2="28"
@@ -32,17 +32,17 @@ export function DatumLogo({ className = "h-7 w-7" }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Caliper Vertical End-Caps on Left Spine */}
+      {/* Measure Vertical End-Caps on Left Spine */}
       <path
         d="M7 5.5V11.5M7 20.5V26.5"
         stroke="currentColor"
         strokeWidth="2.5"
         strokeLinecap="round"
       />
-      {/* Precision Cyan Datum Measurement Axis & Diamond Node */}
+      {/* Precision Cyan ClearBuy Measurement Axis & Diamond Node */}
       <path
         d="M4.5 16H17.5"
-        stroke="url(#datumCaliperCyan)"
+        stroke="url(#clearbuyMeasureCyan)"
         strokeWidth="2.2"
         strokeLinecap="round"
       />

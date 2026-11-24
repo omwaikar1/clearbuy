@@ -1,4 +1,4 @@
-"""CLI smoke & live rehearsal harness for Engineer A modules.
+"""CLI smoke & live rehearsal harness for the scale engine, spec parser & Managed Agent modules.
 
 Usage:
     uv run python -m backend.cli_smoke_test

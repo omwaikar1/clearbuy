@@ -69,7 +69,7 @@
   background-size: 24px 24px;
 }
 
-@keyframes datum-scanline {
+@keyframes clearbuy-scanline {
   0% {
     transform: translateY(-100%);
     opacity: 0;
@@ -86,11 +86,11 @@
   }
 }
 
-.animate-datum-scanline {
-  animation: datum-scanline 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+.animate-clearbuy-scanline {
+  animation: clearbuy-scanline 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-@keyframes datum-wave {
+@keyframes clearbuy-wave {
   0%, 100% {
     transform: scaleY(0.35);
   }
@@ -99,8 +99,8 @@
   }
 }
 
-.animate-datum-wave {
-  animation: datum-wave 0.7s ease-in-out infinite;
+.animate-clearbuy-wave {
+  animation: clearbuy-wave 0.7s ease-in-out infinite;
 }
 
 ::-webkit-scrollbar {

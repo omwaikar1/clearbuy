@@ -285,7 +285,7 @@ export function VoiceSpatialThread({
                 {[0, 1, 2].map((bar) => (
                   <span
                     key={bar}
-                    className="w-0.5 h-full bg-at-cyan rounded-full animate-datum-wave"
+                    className="w-0.5 h-full bg-at-cyan rounded-full animate-clearbuy-wave"
                     style={{ animationDelay: `${bar * 120}ms` }}
                   />
                 ))}

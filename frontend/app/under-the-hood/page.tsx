@@ -40,7 +40,7 @@ export default function UnderTheHoodPage() {
               <Compass className="h-4 w-4" />
             </span>
             <span className="text-sm font-semibold tracking-[-0.02em] text-at-ink">
-              Datum
+              ClearBuy
             </span>
           </Link>
           <span className="text-xs font-mono text-at-muted">
@@ -78,7 +78,7 @@ export default function UnderTheHoodPage() {
             Under the Hood
           </h1>
           <p className="text-sm sm:text-base text-at-muted leading-relaxed">
-            Datum combines a 4-model Gemini 4 pipeline, deterministic Managed
+            ClearBuy combines a 4-model Gemini 4 pipeline, deterministic Managed
             Agents guardrails, and live Shopify Shop MCP / UCP protocols so
             every rendered item physically fits your room and is actually in
             stock.

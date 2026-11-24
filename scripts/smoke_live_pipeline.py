@@ -1,4 +1,4 @@
-"""Live End-to-End Smoke Verification for Engineer B (`mcp.shop.com` + Full Gemini 4 Suite)."""
+"""Live End-to-End Smoke Verification of the full pipeline (`mcp.shop.com` + Full Gemini 4 Suite)."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Automated Unit & API Contract Tests for Engineer B Deliverables."""
+"""Automated Unit & API Contract Tests for the FastAPI orchestrator, adapters & commerce layer."""
 
 from __future__ import annotations
 
@@ -204,7 +204,7 @@ def test_fastapi_endpoints_health_zone_and_422_swap(monkeypatch) -> None:
     assert r_good_swap.status_code == 200
     assert r_good_swap.json()["version_id"] == "v2"
 
-    # Caliper drag override PATCH /zone
+    # Measure drag override PATCH /zone
     r_zone = client.patch(
         f"/api/session/{session_id}/zone",
         json={"zone_id": "zone_1", "override_width_in": 52.0},

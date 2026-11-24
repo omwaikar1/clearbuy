@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ClearBuy (Datum) — 6-Case Adversarial & Guardrail Stress-Test Benchmark Suite.
+"""ClearBuy — 6-Case Adversarial & Guardrail Stress-Test Benchmark Suite.
 
 Executes real deterministic & solver tests against ClearBuy's production modules
 (`spec_parser`, `shop_mcp`, `.agents/verify_bundle.py`, `adapters`, `scale_engine`)
@@ -535,7 +535,7 @@ def main() -> int:
     passed_count = sum(1 for c in cases if c["passed"])
 
     payload = {
-        "suite": "ClearBuy (Datum) Adversarial & Guardrail Stress-Test Benchmark",
+        "suite": "ClearBuy Adversarial & Guardrail Stress-Test Benchmark",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "passed_cases": passed_count,
         "total_cases": len(cases),

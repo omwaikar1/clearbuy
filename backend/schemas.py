@@ -1,4 +1,4 @@
-"""Frozen API & SSE Data Contracts for ClearBuy (Datum).
+"""Frozen API & SSE Data Contracts for ClearBuy.
 
 Matches Section 04 ("Frozen API Contracts", Page 17) and Section 03 HCI specs:
 - POST /api/session/start -> SSE (`scale_ready`, `catalog_ready`, `hook_event`, `cart_ready`, `render_ready`)
@@ -433,7 +433,7 @@ class ZoneOverrideResponse(BaseModel):
     all_items_still_fit: bool
 
 
-# Re-export non-colliding Engineer A internal solver & calibration models
+# Re-export non-colliding internal solver & calibration models
 from backend.schemas_agent import (  # noqa: E402, F401
     AnchorTier,
     BBox1000,

@@ -1,4 +1,4 @@
-"""ClearBuy (Datum) — FastAPI SSE Orchestrator (Engineer B).
+"""ClearBuy — FastAPI SSE Orchestrator.
 
 Implements all 5 Frozen API Contracts (Blueprint Section 04, Page 17):
 1. `POST /api/session/start` -> SSE stream (`scale_ready`, `catalog_ready`,
@@ -6,7 +6,7 @@ Implements all 5 Frozen API Contracts (Blueprint Section 04, Page 17):
 2. `POST /api/session/{id}/thread` -> Conversational voice/text spatial thread
 3. `POST /api/session/{id}/swap` -> `verify_bundle` gate (422 on deny) + stateful
    Nano Banana 2.1 surgical swap + `gemini-decision-1` QA + UCP `update_checkout`
-4. `PATCH /api/session/{id}/zone` -> Instantaneous CAD caliper drag override
+4. `PATCH /api/session/{id}/zone` -> Instantaneous CAD measure drag override
 5. `GET /api/benchmark` -> 14-room NYU Depth V2 Kinect + Gemini 4 ablation results
 """
 
@@ -80,7 +80,7 @@ from backend.thread_router import handle_thread_utterance
 from backend.visual_qa import audit_rendered_room, screen_catalog_candidates
 
 app = FastAPI(
-    title="ClearBuy (Datum) — Verified Spatial Commerce Compiler API",
+    title="ClearBuy — Verified Spatial Commerce Compiler API",
     version="1.0.0",
 )
 

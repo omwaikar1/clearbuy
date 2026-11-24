@@ -302,7 +302,7 @@ export function RoomCanvas({
             </>
           )}
 
-          {/* Blueprint CAD Caliper Overlay */}
+          {/* Blueprint CAD Measure Overlay */}
           {viewMode === "blueprint" && scaleData && (
             <BlueprintOverlay
               scaleData={scaleData}

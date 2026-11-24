@@ -736,8 +736,8 @@ def _extract_file_content(args: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def verify_engineer_b_payload(payload: Dict[str, Any], attempt: int = 1) -> Dict[str, Any]:
-    """Normalize Engineer B's `{budget_usd, zones, items}` (`ShopifySKU`) payload and run `verify_bundle_dict`."""
+def verify_api_payload(payload: Dict[str, Any], attempt: int = 1) -> Dict[str, Any]:
+    """Normalize the FastAPI adapter's `{budget_usd, zones, items}` (`ShopifySKU`) payload and run `verify_bundle_dict`."""
     budget_usd = _safe_float(payload.get("budget_usd")) or 0.0
     raw_zones = payload.get("zones") or []
     norm_zones: List[Dict[str, Any]] = []
@@ -845,7 +845,7 @@ def verify_engineer_b_payload(payload: Dict[str, Any], attempt: int = 1) -> Dict
 
 
 def handle_hook_stdin(raw_stdin: str) -> Dict[str, Any]:
-    """Process either a Managed Agents `pre_tool_execution` payload OR Engineer B's `{budget_usd, zones, items}` JSON."""
+    """Process either a Managed Agents `pre_tool_execution` payload OR the FastAPI adapter's `{budget_usd, zones, items}` JSON."""
     if not raw_stdin.strip():
         return {"decision": "allow"}
     try:
@@ -853,9 +853,9 @@ def handle_hook_stdin(raw_stdin: str) -> Dict[str, Any]:
     except json.JSONDecodeError:
         return {"decision": "allow"}
 
-    # Direct Engineer B adapter invocation (`{"budget_usd": ..., "zones": [...], "items": [...]}`)
+    # Direct FastAPI adapter invocation (`{"budget_usd": ..., "zones": [...], "items": [...]}`)
     if isinstance(payload, dict) and "items" in payload and "zones" in payload and "tool_call" not in payload and "toolCall" not in payload:
-        res = verify_engineer_b_payload(payload)
+        res = verify_api_payload(payload)
         if res["decision"] == "deny":
             return {"decision": "deny", "reason": res["reason"]}
         return {"decision": "allow"}

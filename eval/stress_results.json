@@ -1,5 +1,5 @@
 {
-  "suite": "ClearBuy (Datum) Adversarial & Guardrail Stress-Test Benchmark",
+  "suite": "ClearBuy Adversarial & Guardrail Stress-Test Benchmark",
   "timestamp_utc": "2026-11-21T20:02:12.703827+00:00",
   "passed_cases": 6,
   "total_cases": 6,

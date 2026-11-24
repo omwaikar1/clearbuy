@@ -246,7 +246,7 @@ export interface BenchmarkRoomSample {
   room_label: string;
   image_url?: string;
   kinect_gt_width_in: number;
-  datum_est_width_in: number;
+  clearbuy_est_width_in: number;
   error_in: number;
   calibration_layer: "Layer 1 (Anchor)" | "Layer 2 (Depth+EXIF)";
   chosen_sku: string;

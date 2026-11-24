@@ -215,7 +215,7 @@ export function CaptureCanvas({ onLaunchSession }: CaptureCanvasProps) {
             See real furniture in your exact room.
           </h1>
           <p className="text-base text-at-muted leading-relaxed">
-            Drop 1–3 room photos and describe your style &amp; budget. Datum
+            Drop 1–3 room photos and describe your style &amp; budget. ClearBuy
             measures your space, checks fit &amp; budget, and shows real furniture
             you can buy.
           </p>
@@ -560,7 +560,7 @@ export function CaptureCanvas({ onLaunchSession }: CaptureCanvasProps) {
                     {[0, 1, 2].map((bar) => (
                       <span
                         key={bar}
-                        className="w-0.5 h-full bg-at-cyan rounded-full animate-datum-wave"
+                        className="w-0.5 h-full bg-at-cyan rounded-full animate-clearbuy-wave"
                         style={{ animationDelay: `${bar * 120}ms` }}
                       />
                     ))}

@@ -613,7 +613,7 @@ async def solve_spatial_bundle(
     on_hook_event: Optional[HookEventCallback] = None,
     reuse_environment_id: Optional[str] = None,
 ) -> BundleSolveResult:
-    """High-level async orchestrator called by Engineer B's FastAPI `/api/session/start` SSE stream.
+    """High-level async orchestrator called by the FastAPI `/api/session/start` SSE stream.
 
     Runs inside Google's `antigravity-preview-09-2026` Managed Agents sandbox by default and
     seamlessly falls back to the local `.agents/verify_bundle.py` subprocess loop if remote

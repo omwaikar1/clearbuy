@@ -11,11 +11,11 @@ interface BlueprintOverlayProps {
 }
 
 /**
- * Interactive SVG CAD Caliper Overlay operating on Gemini 4 Neon's 0–1000 normalized grid.
+ * Interactive SVG CAD Measure Overlay operating on Gemini 4 Neon's 0–1000 normalized grid.
  * Draws:
  *  1) Dashed cyan Reference Anchor Callout (e.g., US Outlet · 4.5" H → 14.2 px/in) + leader line
  *  2) Protected Anchor amber masks for kept furniture (Setup Upgrade mode)
- *  3) Numbered zone bounding boxes with end-capped calipers (|◄—— 43.5" W ——►|) + 24" clearance arc
+ *  3) Numbered zone bounding boxes with end-capped measuring lines (|◄—— 43.5" W ——►|) + 24" clearance arc
  *  4) Hover-revealed dual drag handles (left + right, gently highlighted in Layer 2 fallback)
  *  5) Click-on-zone to drop @Zone scope chip into VoiceSpatialThread
  */
@@ -82,7 +82,7 @@ export function BlueprintOverlay({
       {/* Subtle 2.4s architectural scan-line while Nano Banana renders */}
       {isRendering && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="w-full h-16 bg-gradient-to-b from-transparent via-[#38BDF8]/20 to-transparent border-b border-[#38BDF8]/50 animate-datum-scanline" />
+          <div className="w-full h-16 bg-gradient-to-b from-transparent via-[#38BDF8]/20 to-transparent border-b border-[#38BDF8]/50 animate-clearbuy-scanline" />
         </div>
       )}
 
@@ -194,13 +194,13 @@ export function BlueprintOverlay({
           );
         })}
 
-        {/* Detected Placement Zones + Dual Hover-Revealed Caliper Handles */}
+        {/* Detected Placement Zones + Dual Hover-Revealed Measure Handles */}
         {scaleData.zones.map((zone) => {
           const [y1, x1, y2, x2] = zone.bbox;
           const w = x2 - x1;
           const h = y2 - y1;
           const midX = (x1 + x2) / 2;
-          const caliperY = Math.max(40, y1 - 22);
+          const measureY = Math.max(40, y1 - 22);
           const displayWidth =
             draggingZoneId === zone.zone_id && dragPreviewWidth !== null
               ? dragPreviewWidth
@@ -259,28 +259,28 @@ export function BlueprintOverlay({
                 strokeWidth="3.5"
               />
 
-              {/* End-Capped Width Caliper (|◄—— 43.5" W ——►|) */}
+              {/* End-Capped Width Measure (|◄—— 43.5" W ——►|) */}
               <line
                 x1={x1}
-                y1={caliperY - 10}
+                y1={measureY - 10}
                 x2={x1}
-                y2={caliperY + 10}
+                y2={measureY + 10}
                 stroke="#38BDF8"
                 strokeWidth="2.5"
               />
               <line
                 x1={x2}
-                y1={caliperY - 10}
+                y1={measureY - 10}
                 x2={x2}
-                y2={caliperY + 10}
+                y2={measureY + 10}
                 stroke="#38BDF8"
                 strokeWidth="2.5"
               />
               <line
                 x1={x1 + 4}
-                y1={caliperY}
+                y1={measureY}
                 x2={x2 - 4}
-                y2={caliperY}
+                y2={measureY}
                 stroke="#38BDF8"
                 strokeWidth="2"
                 markerStart="url(#cad-arrow-left)"
@@ -304,7 +304,7 @@ export function BlueprintOverlay({
               {/* Left Hover-Revealed Drag Handle */}
               <circle
                 cx={x1}
-                cy={caliperY}
+                cy={measureY}
                 r="11"
                 fill={
                   draggingZoneId === zone.zone_id
@@ -326,7 +326,7 @@ export function BlueprintOverlay({
               {/* Right Hover-Revealed Drag Handle */}
               <circle
                 cx={x2}
-                cy={caliperY}
+                cy={measureY}
                 r="11"
                 fill={
                   draggingZoneId === zone.zone_id
@@ -348,7 +348,7 @@ export function BlueprintOverlay({
               {/* Inline SVG width pill */}
               <rect
                 x={midX - 68}
-                y={caliperY - 16}
+                y={measureY - 16}
                 width="136"
                 height="28"
                 rx="6"
@@ -359,7 +359,7 @@ export function BlueprintOverlay({
               />
               <text
                 x={midX}
-                y={caliperY + 3}
+                y={measureY + 3}
                 textAnchor="middle"
                 fill="#F4F5F7"
                 fontSize="16"

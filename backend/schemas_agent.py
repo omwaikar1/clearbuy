@@ -1,7 +1,7 @@
-"""Frozen Pydantic v2 data contracts for ClearBuy / Datum.
+"""Frozen Pydantic v2 data contracts for ClearBuy.
 
-Shared across Engineer A (Scale & Managed Agents), Engineer B (FastAPI SSE, Shop MCP/UCP,
-Nano Banana 2.1, Decisions API, Benchmark), and Engineer C (Next.js 15 Glass-Box Studio).
+Shared across the scale engine & Managed Agents, the FastAPI SSE / Shop MCP/UCP /
+Nano Banana 2.1 / Decisions API / benchmark layer, and the Next.js 15 Glass-Box Studio.
 """
 
 from __future__ import annotations
@@ -338,7 +338,7 @@ class BundleSolveResult(BaseModel):
 
 
 class ZoneOverrideRequest(BaseModel):
-    """Request payload for PATCH /api/session/{id}/zone (user drag on CAD calipers)."""
+    """Request payload for PATCH /api/session/{id}/zone (user drag on CAD measuring lines)."""
 
     zone_id: str
     override_width_in: Optional[float] = Field(default=None, gt=2.0)

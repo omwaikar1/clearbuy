@@ -10,7 +10,7 @@ import "@fontsource/ibm-plex-mono/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Datum — See Real Furniture in Your Exact Room",
+  title: "ClearBuy — See Real Furniture in Your Exact Room",
   description:
     "Zero-measurement spatial commerce compiler with automatic room calibration, hard fit & budget verification, and live Shopify checkouts.",
 };

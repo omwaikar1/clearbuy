@@ -33,7 +33,7 @@ import { ShopifyCommerceRail } from "@/components/ShopifyCommerceRail";
 import { VoiceSpatialThread } from "@/components/VoiceSpatialThread";
 import { BenchmarkDrawer } from "@/components/BenchmarkDrawer";
 
-export default function DatumStudioPage() {
+export default function ClearBuyStudioPage() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [appPhase, setAppPhase] = useState<"capture" | "studio">("capture");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export default function DatumStudioPage() {
 
   // Persist Darkroom Studio (default) / Light Atelier theme
   useEffect(() => {
-    const saved = window.localStorage.getItem("datum-theme");
+    const saved = window.localStorage.getItem("clearbuy-theme");
     if (saved === "dark" || saved === "light") {
       setTheme(saved);
     }
@@ -87,7 +87,7 @@ export default function DatumStudioPage() {
   useEffect(() => {
     document.documentElement.classList.toggle("theme-dark", theme === "dark");
     document.documentElement.classList.toggle("theme-light", theme === "light");
-    window.localStorage.setItem("datum-theme", theme);
+    window.localStorage.setItem("clearbuy-theme", theme);
   }, [theme]);
 
   useEffect(() => {
@@ -521,7 +521,7 @@ export default function DatumStudioPage() {
     <div className="h-screen w-screen flex flex-col bg-at-bg text-at-ink overflow-hidden transition-colors duration-200">
       {/* Top 48px Utility Bar (Section 03.A) */}
       <header className="h-12 px-4 border-b border-at-border bg-at-card flex items-center justify-between gap-3 shrink-0 z-40">
-        {/* Left: Datum Wordmark + New Space */}
+        {/* Left: ClearBuy Wordmark + New Space */}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -532,7 +532,7 @@ export default function DatumStudioPage() {
               <Compass className="h-4 w-4" />
             </span>
             <span className="text-sm font-semibold tracking-[-0.02em] text-at-ink">
-              Datum
+              ClearBuy
             </span>
           </button>
 

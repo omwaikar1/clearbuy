@@ -8,7 +8,7 @@ include = ["backend*", "eval*"]
 [project]
 name = "clearbuy-backend"
 version = "0.1.0"
-description = "ClearBuy (Datum / Caliper) — Verified Spatial Commerce Compiler"
+description = "ClearBuy — Verified Spatial Commerce Compiler"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

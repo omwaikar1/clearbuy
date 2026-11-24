@@ -1,4 +1,4 @@
-"""Generate Blueprint CAD Caliper overlays + Kinect Metric Depth heatmaps for all 14 eval rooms."""
+"""Generate Blueprint CAD Measure overlays + Kinect Metric Depth heatmaps for all 14 eval rooms."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
 
-ROOT = Path("/Users/ronitvirwani/Documents/caliper")
+ROOT = Path(__file__).resolve().parent.parent
 EVAL_DATA = ROOT / "eval" / "data"
 RESULTS_PATH = ROOT / "eval" / "results.json"
 MANIFEST_PATH = ROOT / "eval" / "manifest.json"
@@ -43,16 +43,16 @@ def main() -> None:
         y1, x1 = int(bbox[0] / 1000.0 * h), int(bbox[1] / 1000.0 * w)
         y2, x2 = int(bbox[2] / 1000.0 * h), int(bbox[3] / 1000.0 * w)
 
-        # 1. Blueprint Caliper Overlay
+        # 1. Blueprint Measure Overlay
         bp = img.copy()
         draw = ImageDraw.Draw(bp, "RGBA")
         draw.rectangle([x1, y1, x2, y2], fill=(56, 189, 248, 38), outline=(56, 189, 248, 255), width=3)
-        # Top caliper dimension bar
+        # Top measure dimension bar
         cy = max(24, y1 - 16)
         draw.line([(x1, cy), (x2, cy)], fill=(56, 189, 248, 255), width=3)
         draw.line([(x1, cy - 8), (x1, cy + 8)], fill=(56, 189, 248, 255), width=3)
         draw.line([(x2, cy - 8), (x2, cy + 8)], fill=(56, 189, 248, 255), width=3)
-        lbl = f"Datum {room['clearbuy_est_width_in']:.1f}\" W  |  Kinect GT {room['kinect_gt_width_in']:.1f}\"  (Err ±{room['abs_scale_error_in']:.1f}\")"
+        lbl = f"ClearBuy {room['clearbuy_est_width_in']:.1f}\" W  |  Kinect GT {room['kinect_gt_width_in']:.1f}\"  (Err ±{room['abs_scale_error_in']:.1f}\")"
         draw.rectangle([10, 10, min(w - 10, 440), 34], fill=(12, 13, 16, 225), outline=(56, 189, 248, 220), width=1)
         draw.text((18, 16), lbl, fill=(56, 189, 248, 255))
         cal_txt = str(room.get("calibration_summary") or "")[:68]

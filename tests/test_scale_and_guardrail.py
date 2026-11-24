@@ -1,7 +1,7 @@
-"""Comprehensive Engineer A test suite:
+"""Scale engine, spec parser, Managed Agent & guardrail test suite:
 1. Universal spatial topology & deterministic budget guardrail (`.agents/verify_bundle.py`)
 2. Subprocess `hooks.json` stdin->stdout protocol & tamper protection
-3. Two-Tier Anchor math, baseboard variance protection, EXIF pinhole invariance & caliper overrides (`scale_engine.py`)
+3. Two-Tier Anchor math, baseboard variance protection, EXIF pinhole invariance & measure overrides (`scale_engine.py`)
 4. Live `gemini-4-hydrogen` structured WxDxH & placement parser (`spec_parser.py`)
 5. Live `gemini-4-neon` scale engine (`xhigh` & `low` ablation + Layer 2 blank-wall fallback)
 6. Live Managed Agent / Hook-gated bundle solver (`DENY -> AUTO-SWAP -> ALLOW` + Safe Refusal)
@@ -433,7 +433,7 @@ def test_hook_subprocess_stdin_stdout_and_tamper_blocking(tmp_path: Path):
 
 
 # ==============================================================================
-# PART 2: Scale Engine Math, Baseboard Variance Protection & Caliper Overrides
+# PART 2: Scale Engine Math, Baseboard Variance Protection & Measure Overrides
 # ==============================================================================
 
 
@@ -518,7 +518,7 @@ def test_foreshortening_skew_flagged_above_15_percent():
     assert foreshortened is True
 
 
-def test_exif_focal_px_rotation_invariance_and_caliper_override_under_5ms():
+def test_exif_focal_px_rotation_invariance_and_measure_override_under_5ms():
     fx_landscape = compute_focal_px_from_35mm(26.0, 1024, 768)
     fx_portrait = compute_focal_px_from_35mm(26.0, 768, 1024)
     assert abs(fx_landscape - fx_portrait) < 1e-6

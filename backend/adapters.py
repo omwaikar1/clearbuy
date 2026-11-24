@@ -1,9 +1,9 @@
-"""Integration Adapters for Engineer A Modules (`scale_engine.py` & `verify_bundle.py`).
+"""Integration Adapters for the Scale Engine & Guardrail Modules (`scale_engine.py` & `verify_bundle.py`).
 
-1. Dynamically delegates to Engineer A's `scale_engine` and `agents/verify_bundle.py`
+1. Dynamically delegates to `scale_engine` and `agents/verify_bundle.py`
    immediately once merged into the repo.
 2. Provides full, production-grade Gemini 4 (`gemini-4-neon` `xhigh`) + deterministic
-   2D physics/budget verification so Engineer B's FastAPI pipeline runs standalone
+   2D physics/budget verification so the FastAPI pipeline runs standalone
    with zero blockers.
 """
 
@@ -239,10 +239,10 @@ async def run_scale_calibration(
     exif_focal_mm: float | None = None,
     thinking_level: str = "xhigh",
 ) -> ScaleReadyEvent:
-    """Delegate to Engineer A's `scale_engine` if available; else run Neon `xhigh` + pinhole math."""
+    """Delegate to `scale_engine` if available; else run Neon `xhigh` + pinhole math."""
     t0 = time.perf_counter()
 
-    # 1. Try Engineer A's module first if present (when live credentials are active)
+    # 1. Try the `scale_engine` module first if present (when live credentials are active)
     if has_live_gemini_credentials():
         for mod_name in ("backend.scale_engine", "scale_engine"):
             try:
@@ -542,7 +542,7 @@ def verify_bundle_deterministic(
 ) -> HookEvent:
     """Deterministic `hooks.json` / `verify_bundle.py` enforcement gate.
 
-    If Engineer A's `agents/verify_bundle.py` exists, also invokes it via Python
+    If `agents/verify_bundle.py` exists, also invokes it via Python
     import/subprocess so the exact Managed Agents guardrail script is exercised.
     """
     violations: list[HookViolation] = []
@@ -667,7 +667,7 @@ def verify_bundle_deterministic(
             )
         )
 
-    # 4. Invoke Engineer A's universal spatial verifier (`agents/verify_bundle.py`)
+    # 4. Invoke the universal spatial verifier (`agents/verify_bundle.py`)
     if not violations:
         payload = {
             "budget_usd": budget_usd,
@@ -685,9 +685,9 @@ def verify_bundle_deterministic(
                 )
                 ext = json.loads(proc.stdout.strip()) if proc.stdout.strip() else {"decision": "allow"}
             else:
-                from agents import verify_engineer_b_payload
+                from agents import verify_api_payload
 
-                ext = verify_engineer_b_payload(payload, attempt=attempt)
+                ext = verify_api_payload(payload, attempt=attempt)
 
             if ext.get("decision") == "deny":
                 violations.append(
@@ -1064,7 +1064,7 @@ async def solve_combinatorial_bundle_async(
     candidates_by_category: dict[str, list[ShopifySKU]],
     budget_usd: float,
 ) -> tuple[list[ShopifySKU], list[HookEvent], str | None]:
-    """Run Engineer A's Managed Agent (`antigravity-preview-09-2026` / `gemini-4-hydrogen` + `.agents/verify_bundle.py`)
+    """Run the Managed Agent (`antigravity-preview-09-2026` / `gemini-4-hydrogen` + `.agents/verify_bundle.py`)
     when live Gemini credentials are active, with instant deterministic DFS fallback."""
     import os
 

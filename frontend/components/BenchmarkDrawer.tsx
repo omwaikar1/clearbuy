@@ -221,9 +221,9 @@ export function BenchmarkDrawer({ open, onClose, data }: BenchmarkDrawerProps) {
                     </p>
                   </div>
                   <div className="p-2 rounded-lg bg-at-card border border-at-border">
-                    <p className="text-[10px] text-at-micro">Datum Estimate</p>
+                    <p className="text-[10px] text-at-micro">ClearBuy Estimate</p>
                     <p className="text-sm text-at-cyan">
-                      {selectedRoom.datum_est_width_in.toFixed(1)}&quot;
+                      {selectedRoom.clearbuy_est_width_in.toFixed(1)}&quot;
                     </p>
                   </div>
                   <div className="p-2 rounded-lg bg-at-card border border-at-border">

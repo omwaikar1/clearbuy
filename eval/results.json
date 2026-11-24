@@ -19,7 +19,7 @@
       "notes": "Real SKUs, but overflows walls/budgets and hits 0 height-vs-width regex traps."
     },
     {
-      "system": "ClearBuy (Datum) \u00b7 Verified Spatial Compiler",
+      "system": "ClearBuy \u00b7 Verified Spatial Compiler",
       "real_buyable_skus_pct": 100.0,
       "kinect_fit_pass_pct": 78.6,
       "strict_budget_pass_pct": 100.0,
@@ -61,7 +61,7 @@
       "failure_mode": "Extreme Wide-Angle Foreshortening (>15% Multi-Anchor Skew)",
       "caught_on": "0.5x ultrawide smartphone corner shots",
       "status": "Mitigated Honestly",
-      "mitigation": "Neon xhigh cross-checks all visible anchors, widens tolerance to \u00b12.4\", and unlocks draggable CAD caliper override."
+      "mitigation": "Neon xhigh cross-checks all visible anchors, widens tolerance to \u00b12.4\", and unlocks draggable CAD measure override."
     }
   ],
   "rooms": [

@@ -783,7 +783,7 @@ def to_scale_ready_event(
     session_id: str,
     prompt: str = "",
 ) -> ScaleReadyEvent:
-    """Convert Engineer A's `ScaleCalibrationResult` into Engineer B's SSE `ScaleReadyEvent`."""
+    """Convert the internal `ScaleCalibrationResult` into the SSE `ScaleReadyEvent`."""
     from backend.adapters import extract_requested_categories
 
     req_cats = extract_requested_categories(prompt, scope=cal.scope) if prompt else []
@@ -898,13 +898,13 @@ async def calibrate_space(
     session_id: Optional[str] = None,
     image_bytes: Optional[bytes] = None,
 ) -> Any:
-    """Async entrypoint supporting BOTH Engineer A (`ScaleCalibrationResult`) and Engineer B (`ScaleReadyEvent`)."""
+    """Async entrypoint supporting BOTH the internal `ScaleCalibrationResult` and the SSE `ScaleReadyEvent`."""
     resolved_img = image_input if image_input is not None else image_bytes
     if resolved_img is None:
         raise ValueError("Either image_input or image_bytes is required.")
 
     if session_id is not None and not _backend_config.has_live_gemini_credentials():
-        # Allow Engineer B's offline unit tests to fall through to deterministic fixture
+        # Allow offline unit tests to fall through to deterministic fixture
         raise RuntimeError("No live Gemini credentials; delegate to offline adapter fixture.")
 
     cal = await asyncio.to_thread(
@@ -959,7 +959,7 @@ def recalculate_zone_override(
     current_items: Sequence[ProposedItem],
     budget_usd: float,
 ) -> ZoneOverrideResponse:
-    """Instantaneous (<5 ms) recalculation for `PATCH /api/session/{id}/zone` caliper drags."""
+    """Instantaneous (<5 ms) recalculation for `PATCH /api/session/{id}/zone` measure drags."""
     target_zone: Optional[SpatialZone] = None
     for z in calibration.zones:
         if z.zone_id == override.zone_id:

@@ -834,11 +834,11 @@ export async function patchZoneOverride(params: {
           id: `override-${Date.now()}`,
           decision: blocked.length > 0 ? "DENY" : "ALLOW",
           timestamp: "LIVE",
-          tool_name: "verify_bundle.py (caliper_override)",
+          tool_name: "verify_bundle.py (measure_override)",
           summary:
             blocked.length > 0
-              ? `DENY after caliper override (${params.overrideWidthIn.toFixed(1)}" W): ${blocked[0].title} exceeds usable width`
-              : `ALLOW after caliper override (${params.overrideWidthIn.toFixed(1)}" W): all items fit with 2" margin`,
+              ? `DENY after measure override (${params.overrideWidthIn.toFixed(1)}" W): ${blocked[0].title} exceeds usable width`
+              : `ALLOW after measure override (${params.overrideWidthIn.toFixed(1)}" W): all items fit with 2" margin`,
         },
       ],
     };
